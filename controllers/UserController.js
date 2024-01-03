@@ -1,6 +1,18 @@
 const User = require("../models/User");
 const Validation = require("../utils/Validation");
 class UserController {
+  async DeleteUser(req, res){
+    const {id} = req.params
+    try{
+      await User.delete({id})
+      res.status(200).json({message:'Usuario deletado'})
+    }catch(err){
+      console.log(err.name)
+      if (err.name == "ExistValue")
+        return res.status(409).json({ err: err.message});
+      res.sendStatus(500)
+    }
+  }
   async GetUsers(req, res) {
     try {
       const data = await User.findAll();
@@ -15,9 +27,7 @@ class UserController {
     try {
       await new Validation({ name, role, email, password }, ["role"]).Check();
       const user = await User.findOne({ email });
-      if (user[0])
-        // varificando se a algo no array user
-        return res.status(409).json({ err: "Usuario ja cadastrado" });
+      if (user)return res.status(409).json({ err: "Usuario ja cadastrado" });
       await User.create({ name, role, email, password });
       res.status(200).json({ message: "Success, User Created" });
     } catch (err) {
@@ -26,14 +36,30 @@ class UserController {
       res.sendStatus(500);
     }
   }
-  async FindUser(req, res){
-    const {id} = req.params
-    try{
-      const data = await User.findById(id)
-      if(data) return res.status(200).json(data)
-      return res.status(404).json({})
-    }catch(err){
-      res.sendStatus(500)
+  async FindUser(req, res) {
+    const { id } = req.params;
+    try {
+      const data = await User.findById(id);
+      if (data) return res.status(200).json(data);
+      return res.status(404).json({});
+    } catch (err) {
+      res.sendStatus(500);
+    }
+  }
+  async UpdateUser(req, res) {
+    const { id } = req.params;
+    const { name, email, role } = req.body;
+    if (!name && !email && !role)
+      return res.status(400).json({ err: "Falta de parametros" });
+    try {
+      await User.update({ id, data: { name, email, role } });
+      res.status(200).json({ message: "User Update" });
+    } catch (err) { 
+      if (err.name == "ExistValue")
+        return res.status(409).json({ err: err.message});
+      if (err.name == "NotValid")
+        return res.status(400).json({ err: err.message});
+      res.sendStatus(500);
     }
   }
 }
