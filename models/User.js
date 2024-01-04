@@ -1,13 +1,13 @@
 const database = require("../database/connection");
-const { NotValid, ExistValue } = require("../utils/Error");
+const { NotValid, NotExistValue, ConflictData } = require("../utils/Error");
+const PasswordToken = require('../models/PasswordToken')
 const bcrypt = require("bcrypt");
-
 class User {
   async delete({ id }) {
     try {
       const value = await database.where({ id }).delete().table("users");
       if (value == 0)
-        throw new ExistValue("O usuario a ser deletado não existe");
+        throw new NotExistValue("O usuario a ser deletado não existe");
     } catch (err) {
       throw err;
     }
@@ -31,7 +31,8 @@ class User {
     try {
       if (user.email != data.email && data.email) {
         var emailRegister = await this.findOne({ email: data.email });
-        if (emailRegister) throw new ExistValue("O e-mail ja esta registrado");
+        if (emailRegister)
+          throw new ConflictData("O e-mail ja esta registrado");
       } else delete data.email;
       if (!data.role || data.role == user.name) delete data.role;
       if (!data.name || data.name == user.name) delete data.name;
@@ -39,17 +40,17 @@ class User {
         throw new NotValid("Não houve nenhuma modificação");
       return data;
     } catch (err) {
-      throw err
+      throw err;
     }
   }
   async update({ data, id }) {
     try {
       const user = await this.findById(id);
-      if (!user) throw new ExistValue("Usuario não encontrado");
+      if (!user) throw new NotExistValue("Usuario não encontrado");
       const userEdit = await this.updateProcessEdit(data, user);
       return await database.update(userEdit).where({ id }).table("users");
     } catch (err) {
-      throw err
+      throw err;
     }
   }
   async findById(id) {
@@ -78,13 +79,28 @@ class User {
   }
   async create({ name, role, email, password }) {
     try {
+      const user = await User.findOne({ email });
+      if (user) throw new ConflictData("Usuario ja esta cadastrado");
       var hash = await bcrypt.hash(password, 10);
-
       await database
         .insert({ name, role, email, password: hash })
         .into("users");
     } catch (err) {
-      console.error(err);
+      throw err;
+    }
+  }
+  async chengePassword({ password, id }) {
+    try {
+      password = await bcrypt.hash(password, 10);
+      const user = await database
+        .update({ password })
+        .where({ id })
+        .table("users");
+        if (user[0] <= 0) throw new NotExistValue("Usuario não existe");
+        await PasswordToken.AlterStatus({token})
+    } catch (err) {
+      console.log(err)
+      throw err;
     }
   }
 }

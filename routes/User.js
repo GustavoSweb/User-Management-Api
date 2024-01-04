@@ -7,4 +7,6 @@ Router.post('/user', User.CreateUser)
 Router.get('/user/:id', User.FindUser)
 Router.put('/user/:id', User.UpdateUser)
 Router.delete('/user/:id', User.DeleteUser)
+Router.put('/changepassword', User.ChangePassword)
+
 module.exports = Router

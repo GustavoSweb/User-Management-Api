@@ -1,16 +1,17 @@
+const PasswordToken = require("../models/PasswordToken");
 const User = require("../models/User");
 const Validation = require("../utils/Validation");
 class UserController {
-  async DeleteUser(req, res){
-    const {id} = req.params
-    try{
-      await User.delete({id})
-      res.status(200).json({message:'Usuario deletado'})
-    }catch(err){
-      console.log(err.name)
-      if (err.name == "ExistValue")
-        return res.status(409).json({ err: err.message});
-      res.sendStatus(500)
+  async DeleteUser(req, res) {
+    const { id } = req.params;
+    try {
+      await User.delete({ id });
+      res.status(200).json({ message: "Usuario deletado" });
+    } catch (err) {
+      console.log(err.name);
+      if (err.name == "NotExistValue")
+        return res.status(404).json({ err: err.message });
+      res.sendStatus(500);
     }
   }
   async GetUsers(req, res) {
@@ -18,7 +19,6 @@ class UserController {
       const data = await User.findAll();
       res.status(200).json(data);
     } catch (err) {
-      console.error(err);
       res.sendStatus(500);
     }
   }
@@ -26,13 +26,13 @@ class UserController {
     const { name, role, email, password } = req.body;
     try {
       await new Validation({ name, role, email, password }, ["role"]).Check();
-      const user = await User.findOne({ email });
-      if (user)return res.status(409).json({ err: "Usuario ja cadastrado" });
       await User.create({ name, role, email, password });
       res.status(200).json({ message: "Success, User Created" });
     } catch (err) {
       if (err.name == "NotValid")
         return res.status(400).json({ err: err.message });
+      if (err.name == "ConflictData")
+        return res.status(409).json({ err: "Usuario ja cadastrado" });
       res.sendStatus(500);
     }
   }
@@ -54,11 +54,29 @@ class UserController {
     try {
       await User.update({ id, data: { name, email, role } });
       res.status(200).json({ message: "User Update" });
-    } catch (err) { 
-      if (err.name == "ExistValue")
-        return res.status(409).json({ err: err.message});
+    } catch (err) {
+      if (err.name == "NotExistValue")
+        return res.status(404).json({ err: err.message });
       if (err.name == "NotValid")
-        return res.status(400).json({ err: err.message});
+        return res.status(400).json({ err: err.message });
+      res.sendStatus(500);
+    }
+  }
+  async ChangePassword(req, res) {
+    try {
+      const { token, password } = req.body;
+      await new Validation({ token, password }).Check();
+
+      const data = await PasswordToken.validate({ token });
+      await User.chengePassword({ token, password, id: data[0].user_id });
+      await PasswordToken.AlterStatus({token})
+      res.status(200).json({ message: "Password change" });
+    } catch (err) {
+      console.log(err)
+      if (err.name == "NotExistValue")
+        return res.status(404).json({ err: err.message });
+      if (err.name == "NotValid")
+        return res.status(400).json({ err: err.message });
       res.sendStatus(500);
     }
   }
