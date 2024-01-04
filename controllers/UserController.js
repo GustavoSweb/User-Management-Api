@@ -1,7 +1,26 @@
 const PasswordToken = require("../models/PasswordToken");
 const User = require("../models/User");
 const Validation = require("../utils/Validation");
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
+const JWTpassword = "djgskdhfgfjdkfhgkdhfgjsdfnlgsndfjgnskdjfgkjdnf";
+
 class UserController {
+  async Login(req, res) {
+    const { email, password } = req.body;
+    try {
+      await new Validation({ email, password }).Check();
+      const user = await User.findOne({ email });
+      if (!user) return res.status(404).json({ err: "Usuario não existe" });
+      const resul = await bcrypt.compare(password, user.password);
+      if (!resul) return res.status(400).json({ err: "Password invalida" });
+      const token = jwt.sign({ role: user.role, email }, JWTpassword, { expiresIn: "72h" },);
+      if(!token) return res.sendStatus(500)
+      res.status(200).json({token})
+    } catch (err) {
+      res.sendStatus(500)
+    }
+  }
   async DeleteUser(req, res) {
     const { id } = req.params;
     try {
@@ -69,10 +88,10 @@ class UserController {
 
       const data = await PasswordToken.validate({ token });
       await User.chengePassword({ token, password, id: data[0].user_id });
-      await PasswordToken.AlterStatus({token})
+
       res.status(200).json({ message: "Password change" });
     } catch (err) {
-      console.log(err)
+      console.log(err);
       if (err.name == "NotExistValue")
         return res.status(404).json({ err: err.message });
       if (err.name == "NotValid")
