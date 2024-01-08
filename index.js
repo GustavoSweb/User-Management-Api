@@ -3,6 +3,9 @@ const app = express()
 const UserRouter = require('./routes/User')
 const TokenRouter = require('./routes/Tokens')
 const bodyParser = require('body-parser')
+const cors = require('cors')
+
+app.use(cors())
 
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended:false}))

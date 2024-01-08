@@ -1,4 +1,4 @@
-const {NotValid} = require('./Error')
+const { NotValid } = require("./Error");
 const names = {
   name: "Nome",
   email: "Email",
@@ -26,10 +26,14 @@ class Validation {
       const option = this.optional
         ? this.optional.find((a) => a == input)
         : null;
-      if (this.data[input] == undefined && option == null) {
-        msg =`O ${input} é invalido`
+      if (
+        this.data[input] == undefined || this.data[input] == "" && option == null
+      ) {
+        msg = names[input] ? `O ${names[input]} é invalido` : `Marque todos os campos!`;
         throw new NotValid(msg);
-      } else if (this.inputs[input] != undefined && option == null)
+      } else if (
+        this.inputs[input] != undefined  && option == null
+      )
         this.inputs[input]();
     });
   }

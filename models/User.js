@@ -77,13 +77,13 @@ class User {
       return [];
     }
   }
-  async create({ name, role, email, password }) {
+  async create({ name, email, password }) {
     try {
-      const user = await User.findOne({ email });
+      const user = await this.findOne({ email });
       if (user) throw new ConflictData("Usuario ja esta cadastrado");
       var hash = await bcrypt.hash(password, 10);
       await database
-        .insert({ name, role, email, password: hash })
+        .insert({ name, email, password: hash })
         .into("users");
     } catch (err) {
       throw err;

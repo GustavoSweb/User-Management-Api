@@ -42,12 +42,13 @@ class UserController {
     }
   }
   async CreateUser(req, res) {
-    const { name, role, email, password } = req.body;
+    const { name, email, password } = req.body;
     try {
-      await new Validation({ name, role, email, password }, ["role"]).Check();
-      await User.create({ name, role, email, password });
+      await new Validation({ name, email, password }).Check();
+      await User.create({ name, email, password });
       res.status(200).json({ message: "Success, User Created" });
     } catch (err) {
+      console.log(err)
       if (err.name == "NotValid")
         return res.status(400).json({ err: err.message });
       if (err.name == "ConflictData")
