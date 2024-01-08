@@ -27,13 +27,15 @@ class Validation {
         ? this.optional.find((a) => a == input)
         : null;
       if (
-        this.data[input] == undefined || this.data[input] == "" && option == null
+        this.data[input] == undefined ||
+        this.data[input] == "" ||
+        (this.data[input] == " " && option == null)
       ) {
-        msg = names[input] ? `O ${names[input]} é invalido` : `Marque todos os campos!`;
+        msg = names[input]
+          ? `O ${names[input]} é invalido`
+          : `Marque todos os campos!`;
         throw new NotValid(msg);
-      } else if (
-        this.inputs[input] != undefined  && option == null
-      )
+      } else if (this.inputs[input] != undefined && option == null)
         this.inputs[input]();
     });
   }

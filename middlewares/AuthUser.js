@@ -8,8 +8,7 @@ module.exports = async (req, res, next) => {
     const token = authToken.split(" ")[1];
     const result = jwt.verify(token, JWTpassword);
     if (!result) res.sendStatus(401);
-    if(result.role <=2)return res.status(401).json({err:'Você não tem permição para acessar esta rota!'})
-    req.body.LogedUser = await { role: result.role, email: result.email };
+    req.LogedUser = { role: result.role, email: result.email };
     next();
   } catch (err) {
     if(err.name == 'TokenExpiredError') return res.status(401).json({err:err.message})

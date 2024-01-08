@@ -14,11 +14,13 @@ class UserController {
       if (!user) return res.status(404).json({ err: "Usuario não existe" });
       const resul = await bcrypt.compare(password, user.password);
       if (!resul) return res.status(400).json({ err: "Password invalida" });
-      const token = jwt.sign({ role: user.role, email }, JWTpassword, { expiresIn: "72h" },);
-      if(!token) return res.sendStatus(500)
-      res.status(200).json({token})
+      const token = jwt.sign({ role: user.role, email }, JWTpassword, {
+        expiresIn: "72h",
+      });
+      if (!token) return res.sendStatus(500);
+      res.status(200).json({ token });
     } catch (err) {
-      res.sendStatus(500)
+      res.sendStatus(500);
     }
   }
   async DeleteUser(req, res) {
@@ -48,7 +50,7 @@ class UserController {
       await User.create({ name, email, password });
       res.status(200).json({ message: "Success, User Created" });
     } catch (err) {
-      console.log(err)
+      console.log(err);
       if (err.name == "NotValid")
         return res.status(400).json({ err: err.message });
       if (err.name == "ConflictData")
@@ -59,7 +61,11 @@ class UserController {
   async FindUser(req, res) {
     const { id } = req.params;
     try {
-      const data = await User.findById(id);
+      var data = {};
+      if (id == "me") {
+        data = await User.findOne({ email: req.email });
+      } else data = await User.findById(id);
+
       if (data) return res.status(200).json(data);
       return res.status(404).json({});
     } catch (err) {
@@ -99,6 +105,20 @@ class UserController {
         return res.status(400).json({ err: err.message });
       res.sendStatus(500);
     }
+  }
+  async GetInfoUser(req, res){
+    console.log(req.body)
+
+    const {email} = req.body.LogedUser
+    try{
+      const data = await User.findOne({email})
+      res.json(data)
+    }catch(err){
+      res.sendStatus(500)
+    }
+  }
+  validate(req, res){
+    res.send('Okay')
   }
 }
 
