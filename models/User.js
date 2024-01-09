@@ -34,7 +34,6 @@ class User {
         if (emailRegister)
           throw new ConflictData("O e-mail ja esta registrado");
       } else delete data.email;
-      if (!data.role || data.role == user.name) delete data.role;
       if (!data.name || data.name == user.name) delete data.name;
       if (Object.keys(data).length <= 0)
         throw new NotValid("Não houve nenhuma modificação");

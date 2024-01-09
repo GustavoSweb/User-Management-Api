@@ -74,11 +74,11 @@ class UserController {
   }
   async UpdateUser(req, res) {
     const { id } = req.params;
-    const { name, email, role } = req.body;
-    if (!name && !email && !role)
+    const { name, email } = req.body;
+    if (!name && !email)
       return res.status(400).json({ err: "Falta de parametros" });
     try {
-      await User.update({ id, data: { name, email, role } });
+      await User.update({ id, data: { name, email } });
       res.status(200).json({ message: "User Update" });
     } catch (err) {
       if (err.name == "NotExistValue")
